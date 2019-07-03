@@ -1,0 +1,16 @@
+{
+  "name": "file-snippets",
+  "version": "1.0.1",
+  "description": "根据目录或者文件生成代码片段",
+  "main": "index.js",
+  "bin": {
+    "snipp": "./index.js"
+  },
+  "keywords": [],
+  "author": "Higher",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.20.0",
+    "prettier": "^1.18.2"
+  }
+}
