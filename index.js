@@ -2,75 +2,67 @@
 const program = require('commander')
 const fs = require('fs')
 const path = require('path')
-const readline = require('readline')
-const prettier = require("prettier")
+const prettier = require('prettier')
+const {generatorByFile, generatorByConfig, generatorByDir, combineByDir} = require('./utils')
 
 program
-  .version('1.0.1')
+  .version('1.1.0')
   .option('-i, --input <path>', 'config input path')
   .option('-o, --output <path>', 'config output path')
   .option('-p, --prefix <name>', 'config prefix words, default equal inputpath basename, valid only if inputpath is a file')
   .option('-t, --title <title>', 'config title, default equal prefix, valid only if inputpath is a file')
   .option('-d, --desc <desc>', 'config description, default equal title, valid only if inputpath is a file')
   .option('-C, --no-comb', 'don’t combi output')
+  .option('-c, --config <path>', 'set config file path')
+  .option('-m, --merge', 'merge dir to a json file')
 program.parse(process.argv)
-
-// 单个文件
-const build = ({file, prefix, title, desc}) => {
-  return new Promise((resolve, reject) => {
-    if (!file) return reject(new Error('请先指定文件'))
-    prefix = prefix || path.parse(file).name
-    let rl = readline.createInterface({
-      input: fs.createReadStream(file)
-    })
-    let body = []
-    let result = {}
-    rl.on('line', data => body.push(data))
-    rl.on('close', () => {
-      result[title || prefix] = {
-        prefix,
-        body,
-        description: desc || title || prefix
-      }
-      resolve(result)
-    })
-  })
-}
 
 ;(async () => {
   // 参数
-  const {input = './', output = './snippets', prefix, title, desc, comb = true} = program
-  if (!fs.existsSync(input)) throw new Error('入口文件（夹）不存在')
+  const {input = './', output = './snippets', prefix, title, desc, comb = true, merge = false} = program
   if (!fs.existsSync(output)) fs.mkdirSync(output)
-  let isDir = fs.statSync(input).isDirectory()
-  // 把单文件和多文件统一处理
-  let files = isDir ? fs.readdirSync(input).map(v => path.join(input, v)) : [input]
-  // return [{outpath: '', data: {}}]
-  let results = await Promise.all(files.map(async file => {
-    let basename = path.parse(file).name
-    let outpath = path.join(output, `${basename}.json`)
-    let data = await build(!isDir ? {file, prefix, title, desc} : {file})
-    return {
-      outpath,
-      data
-    }
-  }))
-  if (!comb || !isDir) {
-    // 单文件或者不要comb
-    results.forEach(({outpath, data}) => {
+  // 如果指定合并，不往下走(仅input,output,merge有效）
+  if (merge) {
+    const {pathname, data} = await combineByDir(input)
+    let outpath = path.join(output, pathname)
+    fs.writeFile(outpath, prettier.format(JSON.stringify(data || {}), {parser: 'json'}), err => {
+      if (err) throw err
+      console.log(`合并成功,文件${outpath}已生成`)
+    })
+    return
+  }
+  // 如果指定配置文件则按配置文件导出(仅output,config有效)
+  if (program.config) {
+    let config = require(program.config)
+    let results = (await generatorByConfig(config)) || []
+    results.forEach(({pathname, data}) => {
+      let outpath = path.join(output, pathname)
       fs.writeFile(outpath, prettier.format(JSON.stringify(data || {}), {parser: 'json'}), err => {
         if (err) throw err
-        console.log(`${outpath}已生成`)
+        console.log(`文件${outpath}已生成`)
+      })
+    })
+    return
+  }
+  // 入口是否为目录类型
+  let isDir = fs.statSync(input).isDirectory()
+  if (isDir) {
+    // 入口为目录(仅input,output,comb有效)
+    let results = (await generatorByDir(input, comb)) || []
+    results.forEach(({pathname, data}) => {
+      let outpath = path.join(output, pathname)
+      fs.writeFile(outpath, prettier.format(JSON.stringify(data || {}), {parser: 'json'}), err => {
+        if (err) throw err
+        console.log(`文件${outpath}已生成`)
       })
     })
   } else {
-    // 需要comb
-    let basename = path.parse(input).name
-    let outpath = path.join(output, `${basename}.json`)
-    let combData = results.reduce((prev, {data = {}}) => Object.assign(prev, data), {})
-    fs.writeFile(outpath, prettier.format(JSON.stringify(combData || {}), {parser: 'json'}), err => {
+    // 这里不太严谨，就当是单文件好了
+    const {pathname, data} = (await generatorByFile({file: input, title, prefix, desc})) || {}
+    let outpath = path.join(output, pathname)
+    fs.writeFile(outpath, prettier.format(JSON.stringify(data || {}), {parser: 'json'}), err => {
       if (err) throw err
-      console.log(`${outpath}已生成`)
+      console.log(`文件${outpath}已生成`)
     })
   }
 })()

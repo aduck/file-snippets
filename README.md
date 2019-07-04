@@ -11,7 +11,7 @@ npm i file-snippets -g
 ## USAGE
 
 ```bash
-Usage: snipp [options]
+Usage: index [options]
 
 Options:
   -V, --version        output the version number
@@ -21,5 +21,7 @@ Options:
   -t, --title <title>  config title, default equal prefix, valid only if inputpath is a file
   -d, --desc <desc>    config description, default equal title, valid only if inputpath is a file
   -C, --no-comb        don’t combi output
+  -c, --config <path>  set config file path
+  -m, --merge          merge dir to a json file
   -h, --help           output usage information
 ```
