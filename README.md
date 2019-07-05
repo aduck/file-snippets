@@ -11,7 +11,7 @@ npm i file-snippets -g
 ## USAGE
 
 ```bash
-Usage: index [options]
+Usage: snipp [options]
 
 Options:
   -V, --version        output the version number
