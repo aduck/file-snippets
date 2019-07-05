@@ -55,10 +55,11 @@ const generatorByConfig = config => {
     if (!config) return reject(new Error('未指定配置文件'))
     let targets = Object.keys(config).map(k => {
       const {type = 'javascript', prefix, body, description} = config[k]
+      const {name} = path.parse(body)
       return {
         file: body,
         title: k,
-        prefix,
+        prefix: prefix || name,
         desc: description,
         type
       }
