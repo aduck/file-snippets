@@ -6,7 +6,7 @@ const prettier = require('prettier')
 const {generatorByFile, generatorByConfig, generatorByDir, combineByDir} = require('./utils')
 
 program
-  .version('1.1.1')
+  .version('1.1.2')
   .option('-i, --input <path>', 'config input path')
   .option('-o, --output <path>', 'config output path')
   .option('-p, --prefix <name>', 'config prefix words, default equal inputpath basename, valid only if inputpath is a file')
