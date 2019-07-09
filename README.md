@@ -1,6 +1,6 @@
 # snippets
 
-> 把常用的代码文件生成代码片段
+> vscode code snippet generator
 
 ## INSTALL
 
@@ -40,4 +40,22 @@ snipp -i ./codes -o ./snippets
 # merge exists json file
 snipp -i ./codes -m javascript -o ./snippets
 snipp -i './code/a.json,./codes/b.json' -m javascript -o ./snippets
+```
+
+## config file like this
+
+```javascript
+module.exports = {
+  // set title as key
+  'a demo': {
+    // set prefix
+    prefix: 'ad',
+    // set body path
+    body: './codes/a.js',
+    // set description
+    description: 'a demo description',
+    // set type, exp:output in javascript.json
+    type: 'javascript'
+  },
+}
 ```

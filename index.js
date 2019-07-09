@@ -3,10 +3,12 @@ const program = require('commander')
 const fs = require('fs')
 const path = require('path')
 const prettier = require('prettier')
-const {generatorByFile, generatorByConfig, generatorByDir, combineJSON} = require('./utils')
+const {generatorByFile, generatorByConfig, generatorByDir, combineJSON} = module.exports = require('./utils')
+
+if (process.argv.length <= 2) return
 
 program
-  .version('1.1.3')
+  .version('1.1.4')
   .option('-i, --input <path>', 'config input path')
   .option('-o, --output <path>', 'config output path')
   .option('-p, --prefix <name>', 'config prefix words, default equal inputpath basename, valid only if inputpath is a file')
@@ -33,7 +35,8 @@ program.parse(process.argv)
   }
   // 如果指定配置文件则按配置文件导出(仅output,config有效)
   if (program.config) {
-    let config = require(program.config)
+    let configPath = path.resolve('.', program.config)
+    let config = require(configPath)
     let results = (await generatorByConfig(config)) || []
     results.forEach(({pathname, data}) => {
       let outpath = path.join(output, pathname)
