@@ -12,7 +12,7 @@ program
   .option('-p, --prefix <name>', 'config prefix words, default equal inputpath basename, valid only if inputpath is a file')
   .option('-t, --title <title>', 'config title, default equal prefix, valid only if inputpath is a file')
   .option('-d, --desc <desc>', 'config description, default equal title, valid only if inputpath is a file')
-  .option('-C, --no-comb', 'don’t combi output')
+  .option('-C, --no-comb', 'don’t combi output, valid only if input is a dir')
   .option('-c, --config <path>', 'set config file path')
   .option('-m, --merge <name>', 'merge to a json file')
 program.parse(process.argv)
