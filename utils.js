@@ -109,18 +109,25 @@ const generatorByDir = (dir, isComb) => {
 }
 
 /**
- * 根据目录合并json文件
- * @param {String} dir 
+ * 合并json文件，参数可以是目录也可以是指定文件，当args.length为1时表示目录
+ * @return 合并后的json对象
  */
-const combineByDir = dir => {
+const combineJSON = (...args) => {
   return new Promise(async (resolve, reject) => {
-    if (!dir || !fs.existsSync(dir)) return reject(new Error('当前目录不存在'))
+    if (!args.length) return reject(new Error('参数不能为空'))
+    // 判断是否是目录
+    let isDir = args.length === 1
+    if (isDir && !fs.existsSync(args[0])) return reject(new Error('当前目录不存在'))
     try {
-      let files = ((await readdir(dir)) || []).map(v => path.join(dir, v))
+      let files = []
+      if (isDir) {
+        files = (await readdir(args[0]) || []).map(v => path.join(args[0], v))
+      } else {
+        files = Array.from(args)
+      }
       let results = await Promise.all(files.map(v => readFile(v)))
-      const {name} = path.parse(dir)
       let data = results.reduce((prev, cur) => Object.assign({}, prev, JSON.parse(cur || '{}')), {})
-      resolve({pathname: `${name}.json`, data})
+      resolve(data)
     } catch (e) {
       reject(e)
     }
@@ -132,5 +139,5 @@ module.exports = {
   generatorByFile,
   generatorByConfig,
   generatorByDir,
-  combineByDir
+  combineJSON
 }

@@ -3,10 +3,10 @@ const program = require('commander')
 const fs = require('fs')
 const path = require('path')
 const prettier = require('prettier')
-const {generatorByFile, generatorByConfig, generatorByDir, combineByDir} = require('./utils')
+const {generatorByFile, generatorByConfig, generatorByDir, combineJSON} = require('./utils')
 
 program
-  .version('1.1.2')
+  .version('1.1.3')
   .option('-i, --input <path>', 'config input path')
   .option('-o, --output <path>', 'config output path')
   .option('-p, --prefix <name>', 'config prefix words, default equal inputpath basename, valid only if inputpath is a file')
@@ -14,17 +14,17 @@ program
   .option('-d, --desc <desc>', 'config description, default equal title, valid only if inputpath is a file')
   .option('-C, --no-comb', 'don’t combi output')
   .option('-c, --config <path>', 'set config file path')
-  .option('-m, --merge', 'merge dir to a json file')
+  .option('-m, --merge <name>', 'merge to a json file')
 program.parse(process.argv)
 
 ;(async () => {
   // 参数
-  const {input = './', output = './snippets', prefix, title, desc, comb = true, merge = false} = program
+  const {input = './', output = './snippets', prefix, title, desc, comb = true, merge} = program
   if (!fs.existsSync(output)) fs.mkdirSync(output)
-  // 如果指定合并，不往下走(仅input,output,merge有效）
+  // 如果指定合并，不往下走(仅input, output,merge有效）
   if (merge) {
-    const {pathname, data} = await combineByDir(input)
-    let outpath = path.join(output, pathname)
+    let data = await combineJSON(...input.split(','))
+    let outpath = path.join(output, `${merge}.json`)
     fs.writeFile(outpath, prettier.format(JSON.stringify(data || {}), {parser: 'json'}), err => {
       if (err) throw err
       console.log(`合并成功,文件${outpath}已生成`)
